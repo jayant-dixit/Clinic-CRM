@@ -289,10 +289,10 @@ export const NotificationsPage = () => {
                   {templateText
                     .replace(/\{\{patientName\}\}/g, 'Rahul Sharma')
                     .replace(/\{\{doctorName\}\}/g, 'Dr. Rahul Sharma')
-                    .replace(/\{\{serviceName\}\}/g, 'Dental Consultation')
+                    .replace(/\{\{serviceName\}\}/g, 'Clinical Consultation')
                     .replace(/\{\{date\}\}/g, '10 October 2026')
                     .replace(/\{\{time\}\}/g, '11:30 AM')
-                    .replace(/\{\{clinicName\}\}/g, 'SmileCare Dental Clinic')
+                    .replace(/\{\{clinicName\}\}/g, 'CareSlot Clinic')
                     .replace(/\{\{appointmentId\}\}/g, 'APT-20261010-0012')}
                 </p>
               </div>

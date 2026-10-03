@@ -81,7 +81,7 @@ export const getAnalyticsOverview = async (req, res, next) => {
       const d = doctors.find((doc) => doc._id.toString() === item._id?.toString());
       return {
         name: d ? d.name : 'Doctor',
-        specialization: d?.specialization || 'Dentistry',
+        specialization: d?.specialization || 'General Practice',
         count: item.count,
       };
     });

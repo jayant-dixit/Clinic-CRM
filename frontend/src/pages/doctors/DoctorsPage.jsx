@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   UserCheck,
   Plus,
@@ -10,6 +10,10 @@ import {
   Calendar,
   Save,
   CheckCircle2,
+  Upload,
+  X,
+  Camera,
+  Sparkles,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { Card } from '../../components/common/Card';
@@ -19,6 +23,9 @@ import { Modal } from '../../components/common/Modal';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Skeleton } from '../../components/common/Skeleton';
 import { useToast } from '../../context/ToastContext';
+
+export const DEFAULT_DOCTOR_IMAGE =
+  'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80';
 
 export const DoctorsPage = () => {
   const { showToast } = useToast();
@@ -34,7 +41,10 @@ export const DoctorsPage = () => {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
-  const [profileImage, setProfileImage] = useState('');
+  const [profileImage, setProfileImage] = useState(DEFAULT_DOCTOR_IMAGE);
+  const [isCustomImage, setIsCustomImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
   const [assignedServices, setAssignedServices] = useState([]);
   const [status, setStatus] = useState('ACTIVE');
 
@@ -68,10 +78,90 @@ export const DoctorsPage = () => {
     setPhone('');
     setEmail('');
     setBio('');
-    setProfileImage('');
+    setProfileImage(DEFAULT_DOCTOR_IMAGE);
+    setIsCustomImage(false);
+    setIsDragging(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setAssignedServices([]);
     setStatus('ACTIVE');
     setDoctorModalOpen(true);
+  };
+
+  const handleDeviceImageUpload = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Please upload a valid image file (JPG, PNG, WEBP)', 'error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image file size exceeds 5MB. Please choose a smaller photo.', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // High quality client-side canvas resize to max 600x600 for optimal fast load and crisp rendering
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        setProfileImage(dataUrl);
+        setIsCustomImage(true);
+        showToast('Profile photo loaded from device!', 'success');
+      };
+      img.onerror = () => {
+        setProfileImage(e.target.result);
+        setIsCustomImage(true);
+        showToast('Profile photo loaded from device', 'success');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleResetToDefault = () => {
+    setProfileImage(DEFAULT_DOCTOR_IMAGE);
+    setIsCustomImage(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    showToast('Reset to default medical doctor photo', 'info');
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleDeviceImageUpload(e.dataTransfer.files[0]);
+    }
   };
 
   const handleSaveDoctor = async (e) => {
@@ -83,7 +173,7 @@ export const DoctorsPage = () => {
         phone,
         email,
         bio,
-        profileImage,
+        profileImage: isCustomImage && profileImage ? profileImage : DEFAULT_DOCTOR_IMAGE,
         assignedServices,
         status,
       };
@@ -160,7 +250,7 @@ export const DoctorsPage = () => {
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Clinic Doctors</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Manage dental practitioners, specializations, assigned services, and weekly availability shifts.
+            Manage medical and healthcare practitioners, specializations, assigned services, and weekly availability shifts.
           </p>
         </div>
 
@@ -178,7 +268,7 @@ export const DoctorsPage = () => {
         <EmptyState
           icon={UserCheck}
           title="No doctors added"
-          description="Add your first dental specialist to configure their appointment slots."
+          description="Add your first doctor or specialist to configure their appointment slots."
           actionLabel="Add Doctor"
           onAction={handleOpenCreateDoctor}
         />
@@ -190,12 +280,12 @@ export const DoctorsPage = () => {
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
                   <img
-                    src={
-                      doctor.profileImage ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=2563eb&color=fff`
-                    }
+                    src={doctor.profileImage || DEFAULT_DOCTOR_IMAGE}
                     alt={doctor.name}
-                    className="w-16 h-16 rounded-2xl object-cover border border-slate-200 flex-shrink-0"
+                    className="w-16 h-16 rounded-2xl object-cover border border-slate-200 flex-shrink-0 shadow-2xs"
+                    onError={(e) => {
+                      e.target.src = DEFAULT_DOCTOR_IMAGE;
+                    }}
                   />
 
                   <div className="flex-1 min-w-0">
@@ -207,7 +297,7 @@ export const DoctorsPage = () => {
                       <Badge status={doctor.status} size="sm" />
                     </div>
 
-                    <p className="text-xs text-slate-500 mt-2 line-clamp-2">{doctor.bio || 'Dental Specialist'}</p>
+                    <p className="text-xs text-slate-500 mt-2 line-clamp-2">{doctor.bio || 'Medical Practitioner / Specialist'}</p>
 
                     <div className="mt-3 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
                       {doctor.phone && (
@@ -268,7 +358,15 @@ export const DoctorsPage = () => {
                       setPhone(doctor.phone || '');
                       setEmail(doctor.email || '');
                       setBio(doctor.bio || '');
-                      setProfileImage(doctor.profileImage || '');
+                      const hasCustom = Boolean(
+                        doctor.profileImage &&
+                        doctor.profileImage !== DEFAULT_DOCTOR_IMAGE &&
+                        !doctor.profileImage.includes('ui-avatars.com')
+                      );
+                      setProfileImage(doctor.profileImage || DEFAULT_DOCTOR_IMAGE);
+                      setIsCustomImage(hasCustom);
+                      setIsDragging(false);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
                       setAssignedServices(doctor.assignedServices?.map((s) => s._id || s) || []);
                       setStatus(doctor.status || 'ACTIVE');
                       setDoctorModalOpen(true);
@@ -319,7 +417,7 @@ export const DoctorsPage = () => {
               <input
                 type="text"
                 required
-                placeholder="e.g. Endodontist / Dentist"
+                placeholder="e.g. Dermatologist / General Physician"
                 value={specialization}
                 onChange={(e) => setSpecialization(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
@@ -361,22 +459,107 @@ export const DoctorsPage = () => {
             </div>
           </div>
 
+          {/* Doctor Profile Picture: Upload from Device or Default Pic */}
           <div>
-            <label className="block font-medium text-slate-700 mb-1">Profile Photo URL</label>
-            <input
-              type="url"
-              placeholder="https://images.unsplash.com/..."
-              value={profileImage}
-              onChange={(e) => setProfileImage(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
-            />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block font-medium text-slate-700">Doctor Profile Picture</label>
+              <span className="text-[11px] font-semibold">
+                {isCustomImage ? (
+                  <span className="text-emerald-600 font-bold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3" /> Uploaded from Device
+                  </span>
+                ) : (
+                  <span className="text-brand-600 font-bold flex items-center gap-1 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
+                    <Sparkles className="w-3 h-3" /> Default Doctor Picture
+                  </span>
+                )}
+              </span>
+            </div>
+
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`p-3.5 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-center gap-4 ${
+                isDragging
+                  ? 'border-brand-500 bg-brand-50/70 ring-2 ring-brand-200'
+                  : 'border-dashed border-slate-200 bg-slate-50/80 hover:bg-slate-50 hover:border-slate-300'
+              }`}
+            >
+              {/* Hidden Native File Input for Device Selection */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/png, image/jpeg, image/webp, image/jpg"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleDeviceImageUpload(e.target.files[0]);
+                  }
+                }}
+                className="hidden"
+              />
+
+              {/* Avatar Live Preview */}
+              <div className="relative flex-shrink-0">
+                <img
+                  src={profileImage || DEFAULT_DOCTOR_IMAGE}
+                  alt="Doctor Avatar"
+                  className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow-md ring-1 ring-slate-200"
+                  onError={(e) => {
+                    e.target.src = DEFAULT_DOCTOR_IMAGE;
+                  }}
+                />
+                <div
+                  className="absolute -bottom-1 -right-1 bg-slate-900/80 text-white p-1 rounded-lg backdrop-blur-xs shadow-xs cursor-pointer hover:bg-slate-900 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Upload from Device"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                </div>
+              </div>
+
+              {/* Device Upload Controls & Helper Instructions */}
+              <div className="flex-1 min-w-0 text-center sm:text-left space-y-1.5">
+                <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    icon={Upload}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-white hover:bg-slate-100 text-xs shadow-2xs font-semibold"
+                  >
+                    {isCustomImage ? 'Change Photo from Device' : 'Upload from Device'}
+                  </Button>
+
+                  {isCustomImage && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      icon={X}
+                      onClick={handleResetToDefault}
+                      className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs"
+                    >
+                      Reset to Default Pic
+                    </Button>
+                  )}
+                </div>
+
+                <p className="text-[11px] text-slate-500">
+                  {isCustomImage
+                    ? 'Custom photo loaded from your device. It will be saved when you click "Save Doctor".'
+                    : 'Choose a photo from your computer/device (JPG, PNG, WEBP). If you don’t upload an image, the default doctor picture will be used automatically.'}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div>
             <label className="block font-medium text-slate-700 mb-1">Biography & Credentials</label>
             <textarea
               rows={2}
-              placeholder="BDS, MDS - 10+ years experience in implants and aesthetic smile design."
+              placeholder="MBBS, MD / Specialist - 10+ years experience in clinical consultations and patient care."
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"

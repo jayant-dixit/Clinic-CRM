@@ -4,6 +4,7 @@ import {
   getTodayAppointmentStats,
   getAppointmentById,
   createManualAppointment,
+  updateAppointment,
   updateAppointmentStatus,
   rescheduleAppointment,
   scheduleFollowUpAppointment,
@@ -18,6 +19,7 @@ router.get('/', getAppointments);
 router.get('/stats/today', getTodayAppointmentStats);
 router.get('/:id', getAppointmentById);
 router.post('/', createManualAppointment);
+router.put('/:id', updateAppointment);
 router.put('/:id/status', updateAppointmentStatus);
 router.post('/:id/reschedule', rescheduleAppointment);
 router.post('/:id/follow-up', scheduleFollowUpAppointment);

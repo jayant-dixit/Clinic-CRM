@@ -35,7 +35,7 @@ export const QRCodesPage = () => {
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">QR Codes Hub</h1>
         <p className="text-xs text-slate-500 mt-1">
-          Generate, download, and print physical tent cards for your dental clinic counter, waiting room, or marketing brochures.
+          Generate, download, and print physical tent cards for your clinic counter, reception desk, or marketing brochures.
         </p>
       </div>
 
@@ -115,7 +115,7 @@ export const QRCodesPage = () => {
           onClose={() => setActiveModalPage(null)}
           title={activeModalPage.title}
           bookingUrl={activeModalPage.fullUrl}
-          clinicName={clinic?.name || 'SmileCare Dental Clinic'}
+          clinicName={clinic?.name || 'CareSlot Clinic'}
         />
       )}
     </div>

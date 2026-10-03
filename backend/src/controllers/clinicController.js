@@ -15,7 +15,7 @@ export const getClinicProfile = async (req, res, next) => {
 
 export const updateClinicProfile = async (req, res, next) => {
   try {
-    const { name, logo, description, phone, email, address, website, timezone, settings } = req.body;
+    const { name, logo, description, phone, email, address, website, timezone, settings, clinicType, googleBusinessProfile } = req.body;
 
     const clinic = await Clinic.findByIdAndUpdate(
       req.clinicId,
@@ -27,6 +27,8 @@ export const updateClinicProfile = async (req, res, next) => {
         ...(email && { email }),
         ...(address && { address }),
         ...(website !== undefined && { website }),
+        ...(clinicType && { clinicType }),
+        ...(googleBusinessProfile !== undefined && { googleBusinessProfile: googleBusinessProfile.trim() }),
         ...(timezone && { timezone }),
         ...(settings && { settings }),
       },

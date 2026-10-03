@@ -16,8 +16,12 @@ export const Login = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      await login(email, password);
-      navigate('/dashboard');
+      const res = await login(email, password);
+      if (res?.user?.role === 'SUPER_ADMIN') {
+        navigate('/superadmin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -28,8 +32,12 @@ export const Login = () => {
   const handleDemoClick = async (role) => {
     try {
       setLoading(true);
-      await demoLogin(role);
-      navigate('/dashboard');
+      const res = await demoLogin(role);
+      if (res?.user?.role === 'SUPER_ADMIN' || role === 'SUPER_ADMIN') {
+        navigate('/superadmin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error(err);
     } finally {

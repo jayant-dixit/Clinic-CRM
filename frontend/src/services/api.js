@@ -100,6 +100,7 @@ export const api = {
   getTodayStats: () => request('/appointments/stats/today'),
   getAppointment: (id) => request(`/appointments/${id}`),
   createAppointment: (data) => request('/appointments', { method: 'POST', body: data }),
+  updateAppointment: (id, data) => request(`/appointments/${id}`, { method: 'PUT', body: data }),
   updateAppointmentStatus: (id, data) => request(`/appointments/${id}/status`, { method: 'PUT', body: data }),
   rescheduleAppointment: (id, data) => request(`/appointments/${id}/reschedule`, { method: 'POST', body: data }),
   scheduleFollowUp: (id, data) => request(`/appointments/${id}/follow-up`, { method: 'POST', body: data }),
@@ -136,4 +137,22 @@ export const api = {
   getPublicAppointment: (appointmentNumber) => request(`/public/booking/appointment/${appointmentNumber}`),
   cancelPublicAppointment: (appointmentNumber, reason) =>
     request(`/public/booking/appointment/${appointmentNumber}/cancel`, { method: 'POST', body: { reason } }),
+
+  // SuperAdmin Endpoints
+  getSuperAdminAnalytics: () => request('/superadmin/analytics'),
+  getSuperAdminClinics: () => request('/superadmin/clinics'),
+  createSuperAdminClinic: (data) => request('/superadmin/clinics', { method: 'POST', body: data }),
+  updateSuperAdminClinicSubscription: (clinicId, data) =>
+    request(`/superadmin/clinics/${clinicId}/subscription`, { method: 'PUT', body: data }),
+  updateSuperAdminClinicFeatures: (clinicId, data) =>
+    request(`/superadmin/clinics/${clinicId}/features`, { method: 'PUT', body: data }),
+  getSuperAdminDoctors: () => request('/superadmin/doctors'),
+  createSuperAdminDoctorOrStaff: (clinicId, data) =>
+    request(`/superadmin/clinics/${clinicId}/staff`, { method: 'POST', body: data }),
+  getSuperAdminPatients: (params = '') => request(`/superadmin/patients${params}`),
+  getSuperAdminPayments: () => request('/superadmin/payments'),
+  recordSuperAdminPayment: (data) => request('/superadmin/payments', { method: 'POST', body: data }),
+  getSuperAdminSupportTickets: (params = '') => request(`/superadmin/support${params}`),
+  updateSuperAdminSupportTicket: (id, data) => request(`/superadmin/support/${id}`, { method: 'PUT', body: data }),
+  createSupportTicketByClinic: (data) => request('/superadmin/support/submit', { method: 'POST', body: data }),
 };

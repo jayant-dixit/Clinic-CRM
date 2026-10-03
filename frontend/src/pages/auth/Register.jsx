@@ -57,7 +57,7 @@ export const Register = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Apex Dental Center"
+                  placeholder="e.g. Apex Health Clinic"
                   value={clinicName}
                   onChange={(e) => setClinicName(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-100"

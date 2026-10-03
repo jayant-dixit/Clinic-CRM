@@ -119,7 +119,7 @@ export const ServicesPage = () => {
         <EmptyState
           icon={Stethoscope}
           title="No services added yet"
-          description="Create your dental treatments such as Consultations, Scaling, Root Canal, or Implants."
+          description="Create your clinical services and treatments such as Consultations, Checkups, Therapy, or Procedures."
           actionLabel="Add Service"
           onAction={handleOpenCreate}
         />

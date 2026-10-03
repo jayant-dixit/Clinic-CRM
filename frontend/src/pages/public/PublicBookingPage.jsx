@@ -112,6 +112,16 @@ export const PublicBookingPage = () => {
         setConfirmedAppointment(res.data);
         setCurrentStep(6); // Success screen
 
+        // Broadcast to clinic dashboard (Appointments page) in real-time
+        try {
+          const channel = new BroadcastChannel('careslot_live_sync');
+          channel.postMessage({
+            type: 'NEW_APPOINTMENT',
+            bookingSource: payload.bookingSource,
+            appointment: res.data,
+          });
+        } catch (_) {}
+
         // Trigger celebratory confetti
         try {
           confetti({
@@ -203,15 +213,15 @@ export const PublicBookingPage = () => {
             {clinic.logo ? (
               <img src={clinic.logo} alt={clinic.name} className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-brand-600 text-white font-bold flex items-center justify-center text-lg shadow-md shadow-brand-500/20">
-                🦷
+              <div className="w-10 h-10 rounded-xl bg-brand-600 text-white font-bold flex items-center justify-center shadow-md shadow-brand-500/20">
+                <Building2 className="w-5 h-5 text-white" />
               </div>
             )}
             <div>
               <h1 className="text-sm font-extrabold text-slate-900 tracking-tight">{clinic.name}</h1>
               <p className="text-[11px] text-slate-500 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-slate-400" />
-                <span>{clinic.address?.city || 'Dental Clinic'}</span>
+                <span>{clinic.address?.city || clinic.clinicType || 'Healthcare Clinic'}</span>
               </p>
             </div>
           </div>
@@ -339,7 +349,7 @@ export const PublicBookingPage = () => {
               <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 Step 2 of 5
               </span>
-              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Select Dental Specialist</h2>
+              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Select Doctor / Specialist</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Consulting for: <strong>{selectedService?.name}</strong>
               </p>
@@ -362,10 +372,14 @@ export const PublicBookingPage = () => {
                       <img
                         src={
                           doc.profileImage ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.name)}&background=2563eb&color=fff`
+                          'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80'
                         }
                         alt={doc.name}
                         className="w-14 h-14 rounded-2xl object-cover border border-slate-200 flex-shrink-0"
+                        onError={(e) => {
+                          e.target.src =
+                            'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80';
+                        }}
                       />
                       <div>
                         <h3 className="text-sm font-bold text-slate-900">{doc.name}</h3>
@@ -412,7 +426,7 @@ export const PublicBookingPage = () => {
               </span>
               <h2 className="text-xl font-extrabold text-slate-900 mt-1">{formSchema?.title || 'Patient Registration'}</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                {formSchema?.description || 'Please provide your details for the dental consultation record.'}
+                {formSchema?.description || 'Please provide your details for the clinical consultation record.'}
               </p>
             </div>
 

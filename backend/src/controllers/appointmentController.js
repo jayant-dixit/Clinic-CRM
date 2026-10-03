@@ -58,6 +58,7 @@ export const getTodayAppointmentStats = async (req, res, next) => {
   try {
     const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
     const appointments = await Appointment.find({ clinicId: req.clinicId, date: today })
+      .populate('patientId')
       .populate('doctorId', 'name specialization')
       .populate('serviceId', 'name duration price color')
       .sort({ startTime: 1 });
@@ -84,14 +85,27 @@ export const getTodayAppointmentStats = async (req, res, next) => {
           noShow,
         },
         timeline: appointments.map((a) => ({
+          _id: a._id,
           id: a._id,
           appointmentNumber: a.appointmentNumber,
           time: a.startTime,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          date: a.date,
+          duration: a.duration,
+          patientDetails: a.patientDetails,
           patientName: a.patientDetails?.name || 'Patient',
+          patientPhone: a.patientDetails?.phone || '',
+          patientId: a.patientId,
           doctorName: a.doctorId?.name || 'Doctor',
+          doctorId: a.doctorId,
           serviceName: a.serviceId?.name || 'Service',
+          serviceId: a.serviceId,
           status: a.status,
           queueToken: a.queueToken,
+          clinicalNotes: a.clinicalNotes || '',
+          treatmentProvided: a.treatmentProvided || '',
+          internalNotes: a.internalNotes || '',
         })),
       },
     });
@@ -233,7 +247,7 @@ export const createManualAppointment = async (req, res, next) => {
 
 export const updateAppointmentStatus = async (req, res, next) => {
   try {
-    const { status, cancellationReason, internalNotes } = req.body;
+    const { status, cancellationReason, internalNotes, clinicalNotes, treatmentProvided } = req.body;
 
     const appointment = await Appointment.findOne({ _id: req.params.id, clinicId: req.clinicId })
       .populate('patientId')
@@ -245,9 +259,11 @@ export const updateAppointmentStatus = async (req, res, next) => {
     }
 
     const oldStatus = appointment.status;
-    appointment.status = status;
-    if (cancellationReason) appointment.cancellationReason = cancellationReason;
+    if (status) appointment.status = status;
+    if (cancellationReason !== undefined) appointment.cancellationReason = cancellationReason;
     if (internalNotes !== undefined) appointment.internalNotes = internalNotes;
+    if (clinicalNotes !== undefined) appointment.clinicalNotes = clinicalNotes;
+    if (treatmentProvided !== undefined) appointment.treatmentProvided = treatmentProvided;
 
     // Queue integration: If status transitions to ARRIVED or WAITING, assign queue token if not present
     if (['ARRIVED', 'WAITING'].includes(status) && !appointment.queueToken) {
@@ -445,3 +461,35 @@ export const scheduleFollowUpAppointment = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateAppointment = async (req, res, next) => {
+  try {
+    const { status, cancellationReason, internalNotes, clinicalNotes, treatmentProvided } = req.body;
+
+    const appointment = await Appointment.findOne({ _id: req.params.id, clinicId: req.clinicId })
+      .populate('patientId')
+      .populate('doctorId')
+      .populate('serviceId');
+
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+
+    if (status) appointment.status = status;
+    if (cancellationReason !== undefined) appointment.cancellationReason = cancellationReason;
+    if (internalNotes !== undefined) appointment.internalNotes = internalNotes;
+    if (clinicalNotes !== undefined) appointment.clinicalNotes = clinicalNotes;
+    if (treatmentProvided !== undefined) appointment.treatmentProvided = treatmentProvided;
+
+    await appointment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Appointment updated successfully',
+      data: appointment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

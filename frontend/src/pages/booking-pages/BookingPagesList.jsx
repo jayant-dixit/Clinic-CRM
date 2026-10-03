@@ -278,7 +278,7 @@ export const BookingPagesList = () => {
             <input
               type="text"
               required
-              placeholder="e.g. Book Your Dental Appointment"
+              placeholder="e.g. Book Your Clinical Appointment"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-100"
@@ -289,7 +289,7 @@ export const BookingPagesList = () => {
             <label className="block font-medium text-slate-700 mb-1">Description / Subtitle</label>
             <textarea
               rows={2}
-              placeholder="e.g. Schedule your dental consultation online in 60 seconds."
+              placeholder="e.g. Schedule your in-clinic consultation online in 60 seconds."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
@@ -384,7 +384,7 @@ export const BookingPagesList = () => {
           onClose={() => setQrModalData(null)}
           title={qrModalData.title}
           bookingUrl={qrModalData.url}
-          clinicName={clinic?.name || 'SmileCare Dental Clinic'}
+          clinicName={clinic?.name || 'CareSlot Clinic'}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   CalendarDays,
@@ -18,8 +18,12 @@ import {
   Phone,
   User,
   ArrowRight,
+  LayoutGrid,
+  LayoutList,
+  RotateCw,
 } from 'lucide-react';
 import { api } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -27,17 +31,83 @@ import { Modal } from '../../components/common/Modal';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Skeleton } from '../../components/common/Skeleton';
 import { useToast } from '../../context/ToastContext';
+import { StatusDropdown } from '../../components/appointments/StatusDropdown';
+import { AppointmentTile } from '../../components/appointments/AppointmentTile';
+import { PatientAppointmentDialog } from '../../components/appointments/PatientAppointmentDialog';
+
+// Helper to get local date string YYYY-MM-DD
+const getTodayDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper to match logged-in doctor from auth user
+export const findLoggedInDoctor = (currentUser, doctorList) => {
+  if (!doctorList || doctorList.length === 0) return null;
+  if (!currentUser) return doctorList[0];
+
+  // 1. Direct email match
+  if (currentUser.email) {
+    const emailMatch = doctorList.find(
+      (d) => d.email && d.email.toLowerCase() === currentUser.email.toLowerCase()
+    );
+    if (emailMatch) return emailMatch;
+  }
+
+  // 2. Direct ID or doctorId match
+  const idMatch = doctorList.find(
+    (d) => d._id === currentUser.doctorId || d.userId === currentUser._id || d._id === currentUser._id
+  );
+  if (idMatch) return idMatch;
+
+  // 3. Name match: normalized match
+  const clean = (str) =>
+    str
+      ? str
+          .toLowerCase()
+          .replace(/^(dr\.?|doctor)\s+/i, '')
+          .replace(/\s*\(.*?\)/g, '')
+          .trim()
+      : '';
+
+  const userNameClean = clean(currentUser.name);
+  if (userNameClean) {
+    const nameMatch = doctorList.find((d) => {
+      const docNameClean = clean(d.name);
+      return (
+        docNameClean &&
+        (userNameClean.includes(docNameClean) || docNameClean.includes(userNameClean))
+      );
+    });
+    if (nameMatch) return nameMatch;
+  }
+
+  // Fallback: Default to first doctor
+  return doctorList[0];
+};
 
 export const AppointmentsList = () => {
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
+  const { user } = useAuth();
+
+  const todayStr = getTodayDateString();
 
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const prevAppointmentsRef = useRef([]);
+
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDoctorId, setSelectedDoctorId] = useState('all');
-  const [selectedDate, setSelectedDate] = useState(''); // Empty means all dates or filter
+  const [selectedDate, setSelectedDate] = useState(todayStr); // Always default to today's date
+  const [viewMode, setViewMode] = useState(
+    () => localStorage.getItem('appointments_view_mode') || 'list'
+  );
   const [doctors, setDoctors] = useState([]);
   const [services, setServices] = useState([]);
 
@@ -47,6 +117,8 @@ export const AppointmentsList = () => {
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
   const [formDataModalOpen, setFormDataModalOpen] = useState(false);
+  const [patientDialogOpen, setPatientDialogOpen] = useState(false);
+  const [patientDialogAppointment, setPatientDialogAppointment] = useState(null);
 
   // New Walk-in Appointment Form State
   const [isNewPatient, setIsNewPatient] = useState(true);
@@ -54,7 +126,7 @@ export const AppointmentsList = () => {
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [manualDoctorId, setManualDoctorId] = useState('');
   const [manualServiceId, setManualServiceId] = useState('');
-  const [manualDate, setManualDate] = useState(new Date().toISOString().slice(0, 10));
+  const [manualDate, setManualDate] = useState(todayStr);
   const [manualTime, setManualTime] = useState('');
   const [manualNotes, setManualNotes] = useState('');
   const [availableSlots, setAvailableSlots] = useState([]);
@@ -77,9 +149,16 @@ export const AppointmentsList = () => {
   const [followUpSlots, setFollowUpSlots] = useState([]);
   const [followUpLoadingSlots, setFollowUpLoadingSlots] = useState(false);
 
-  const fetchAppointments = async () => {
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('appointments_view_mode', mode);
+  };
+
+  const fetchAppointments = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      setIsSyncing(true);
+
       let queryStr = '?';
       if (selectedStatus !== 'all') queryStr += `status=${selectedStatus}&`;
       if (selectedDoctorId !== 'all') queryStr += `doctorId=${selectedDoctorId}&`;
@@ -87,11 +166,32 @@ export const AppointmentsList = () => {
       if (searchQuery) queryStr += `search=${encodeURIComponent(searchQuery)}&`;
 
       const res = await api.getAppointments(queryStr);
-      setAppointments(res.data || []);
+      const loaded = res.data || [];
+
+      // If in background silent mode, check if any new appointments arrived
+      if (silent && prevAppointmentsRef.current.length > 0) {
+        const incoming = loaded.filter(
+          (item) => !prevAppointmentsRef.current.includes(item._id)
+        );
+        if (incoming.length > 0) {
+          incoming.forEach((newApt) => {
+            const pName = newApt.patientDetails?.name || 'Patient';
+            const src = newApt.bookingSource === 'QR' ? 'QR Code' : newApt.bookingSource || 'Online';
+            showToast(
+              `🔔 New booking via ${src} for ${pName} (${newApt.startTime || ''})`,
+              'info'
+            );
+          });
+        }
+      }
+
+      prevAppointmentsRef.current = loaded.map((a) => a._id);
+      setAppointments(loaded);
     } catch (err) {
-      console.error('Error fetching appointments:', err);
+      if (!silent) console.error('Error fetching appointments:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      setIsSyncing(false);
     }
   };
 
@@ -102,13 +202,21 @@ export const AppointmentsList = () => {
         api.getServices(),
         api.getPatients('?limit=100'),
       ]);
-      setDoctors(docsRes.data || []);
+      const loadedDocs = docsRes.data || [];
+      setDoctors(loadedDocs);
       setServices(srvsRes.data || []);
       setPatientsList(ptsRes.data || []);
 
-      if (docsRes.data?.length > 0) {
-        setManualDoctorId(docsRes.data[0]._id);
+      // Always select login doctor as default in filter
+      const matchedDoc = findLoggedInDoctor(user, loadedDocs);
+      if (matchedDoc) {
+        setSelectedDoctorId(matchedDoc._id);
+        setManualDoctorId(matchedDoc._id);
+      } else if (loadedDocs.length > 0) {
+        setSelectedDoctorId(loadedDocs[0]._id);
+        setManualDoctorId(loadedDocs[0]._id);
       }
+
       if (srvsRes.data?.length > 0) {
         setManualServiceId(srvsRes.data[0]._id);
       }
@@ -121,8 +229,58 @@ export const AppointmentsList = () => {
     fetchMeta();
   }, []);
 
+  // Update selected doctor if user context loads later
+  useEffect(() => {
+    if (doctors.length > 0 && (selectedDoctorId === 'all' || !selectedDoctorId)) {
+      const matchedDoc = findLoggedInDoctor(user, doctors);
+      if (matchedDoc) {
+        setSelectedDoctorId(matchedDoc._id);
+        if (!manualDoctorId) setManualDoctorId(matchedDoc._id);
+      }
+    }
+  }, [user, doctors]);
+
   useEffect(() => {
     fetchAppointments();
+  }, [selectedStatus, selectedDoctorId, selectedDate, searchQuery]);
+
+  // Real-time live sync: BroadcastChannel (cross-tab) & Background polling every 5s (cross-device/QR)
+  useEffect(() => {
+    // 1. Cross-tab live broadcast
+    let channel = null;
+    try {
+      channel = new BroadcastChannel('careslot_live_sync');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'NEW_APPOINTMENT') {
+          fetchAppointments(true);
+          const apt = event.data.appointment;
+          const pName = apt?.patientDetails?.name || 'Patient';
+          showToast(
+            `🔔 New ${event.data.bookingSource || 'QR'} appointment from ${pName}!`,
+            'info'
+          );
+        }
+      };
+    } catch (_) {}
+
+    // 2. Background polling every 5 seconds (when tab is visible)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchAppointments(true);
+      }
+    }, 5000);
+
+    // 3. Tab focus auto-sync
+    const onFocus = () => {
+      fetchAppointments(true);
+    };
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      if (channel) channel.close();
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
   }, [selectedStatus, selectedDoctorId, selectedDate, searchQuery]);
 
   // Load available slots when creating manual appointment
@@ -168,6 +326,7 @@ export const AppointmentsList = () => {
         .then((res) => {
           setFollowUpSlots(res.data || []);
           if (res.data?.length > 0) setFollowUpTime(res.data[0].startTime);
+          else setFollowUpTime('');
         })
         .catch(console.error)
         .finally(() => setFollowUpLoadingSlots(false));
@@ -175,13 +334,77 @@ export const AppointmentsList = () => {
   }, [followUpDoctorId, followUpServiceId, followUpDate]);
 
   const handleStatusChange = async (aptId, newStatus) => {
+    // 1. Optimistic instant in-place update (prevents whole-list re-rendering and skeleton flashing!)
+    setAppointments((prev) =>
+      prev.map((apt) => (apt._id === aptId ? { ...apt, status: newStatus } : apt))
+    );
+
     try {
       await api.updateAppointmentStatus(aptId, { status: newStatus });
       showToast(`Appointment status changed to ${newStatus}`, 'success');
-      fetchAppointments();
+      // Do not refetch full appointments list with loading screen to prevent re-render flicker
     } catch (err) {
       showToast(err.message || 'Failed to update status', 'error');
+      // Revert if error occurs by silently fetching
+      fetchAppointments(true);
     }
+  };
+
+  const handleOpenPatientDialog = (apt) => {
+    setPatientDialogAppointment(apt);
+    setPatientDialogOpen(true);
+  };
+
+  const handleAppointmentUpdatedFromDialog = (updatedApt) => {
+    setAppointments((prev) =>
+      prev.map((a) => (a._id === updatedApt._id ? { ...a, ...updatedApt } : a))
+    );
+    setPatientDialogAppointment((prev) => (prev ? { ...prev, ...updatedApt } : updatedApt));
+  };
+
+  const handleFollowUpCreatedFromDialog = () => {
+    fetchAppointments(true);
+  };
+
+  const handleOpenFollowUp = (apt) => {
+    setSelectedAppointment(apt);
+    setFollowUpDoctorId(apt.doctorId?._id || doctors[0]?._id);
+    setFollowUpServiceId(apt.serviceId?._id || services[0]?._id);
+    setFollowUpNotes('');
+
+    // Default to +7 days from appointment date (or today)
+    const base = apt.date ? new Date(apt.date) : new Date();
+    const now = new Date();
+    const start = base < now ? now : base;
+    const target = new Date(start.getTime() + 7 * 86400000);
+    const y = target.getFullYear();
+    const m = String(target.getMonth() + 1).padStart(2, '0');
+    const d = String(target.getDate()).padStart(2, '0');
+    setFollowUpDate(`${y}-${m}-${d}`);
+    setFollowUpModalOpen(true);
+  };
+
+  const handleApplyFollowUpDays = (days) => {
+    const base = selectedAppointment?.date ? new Date(selectedAppointment.date) : new Date();
+    const now = new Date();
+    const start = base < now ? now : base;
+    const target = new Date(start.getTime() + days * 86400000);
+    const y = target.getFullYear();
+    const m = String(target.getMonth() + 1).padStart(2, '0');
+    const d = String(target.getDate()).padStart(2, '0');
+    setFollowUpDate(`${y}-${m}-${d}`);
+  };
+
+  const isFollowUpPresetActive = (days) => {
+    if (!followUpDate) return false;
+    const base = selectedAppointment?.date ? new Date(selectedAppointment.date) : new Date();
+    const now = new Date();
+    const start = base < now ? now : base;
+    const target = new Date(start.getTime() + days * 86400000);
+    const y = target.getFullYear();
+    const m = String(target.getMonth() + 1).padStart(2, '0');
+    const d = String(target.getDate()).padStart(2, '0');
+    return followUpDate === `${y}-${m}-${d}`;
   };
 
   const handleCreateWalkIn = async (e) => {
@@ -302,39 +525,57 @@ export const AppointmentsList = () => {
           </div>
 
           {/* Doctor Filter */}
-          <div className="w-full md:w-52">
+          <div className="w-full md:w-56">
             <select
               value={selectedDoctorId}
               onChange={(e) => setSelectedDoctorId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-brand-100"
             >
               <option value="all">All Doctors</option>
-              {doctors.map((d) => (
-                <option key={d._id} value={d._id}>
-                  {d.name}
-                </option>
-              ))}
+              {doctors.map((d) => {
+                const isUserDoc = user && findLoggedInDoctor(user, [d])?._id === d._id;
+                return (
+                  <option key={d._id} value={d._id}>
+                    {d.name} {isUserDoc ? ' (You)' : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
           {/* Date Filter */}
-          <div className="w-full md:w-44">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 focus:outline-none"
-            />
-          </div>
+          <div className="w-full md:w-auto flex items-center gap-1.5 flex-wrap">
+            <div className="relative">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full md:w-40 px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </div>
 
-          {selectedDate && (
-            <button
-              onClick={() => setSelectedDate('')}
-              className="text-xs text-brand-600 hover:underline px-2"
-            >
-              Clear Date
-            </button>
-          )}
+            {selectedDate !== todayStr && (
+              <button
+                type="button"
+                onClick={() => setSelectedDate(todayStr)}
+                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors whitespace-nowrap"
+                title="Filter by today's date"
+              >
+                Today
+              </button>
+            )}
+
+            {selectedDate && (
+              <button
+                type="button"
+                onClick={() => setSelectedDate('')}
+                className="text-xs text-slate-500 hover:text-rose-600 hover:underline px-2 whitespace-nowrap"
+                title="Show all dates"
+              >
+                Clear Date
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Status Filter Tabs */}
@@ -355,7 +596,74 @@ export const AppointmentsList = () => {
         </div>
       </Card>
 
-      {/* Appointments List / Table */}
+      {/* View Mode Toggle and Appointment Count Bar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap px-1">
+        <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+          <span>Showing</span>
+          <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+            {appointments.length}
+          </span>
+          <span>appointments</span>
+          {selectedDate === todayStr && (
+            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1 text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Today's Schedule
+            </span>
+          )}
+          {selectedDoctorId !== 'all' && doctors.find((d) => d._id === selectedDoctorId) && (
+            <span className="text-slate-400">
+              • for <strong className="text-slate-700">{doctors.find((d) => d._id === selectedDoctorId)?.name}</strong>
+            </span>
+          )}
+        </div>
+
+        {/* Live Sync Status & View Mode Toggle Switch */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200/80 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="hidden sm:inline">Live Sync</span>
+            <button
+              type="button"
+              onClick={() => fetchAppointments(true)}
+              title="Sync appointments now"
+              className="ml-0.5 text-emerald-600 hover:text-emerald-950 transition-all p-0.5 rounded hover:bg-emerald-100"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+
+          <div className="flex items-center p-1 bg-slate-100/90 rounded-xl border border-slate-200 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => handleViewModeChange('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 ${
+                viewMode === 'list'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+              title="Switch to List View"
+            >
+              <LayoutList className="w-3.5 h-3.5" />
+              <span>List View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleViewModeChange('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 ${
+                viewMode === 'grid'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+              title="Switch to Card / Tile View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Card View</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Appointments List / Table / Cards */}
       {loading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
@@ -366,27 +674,67 @@ export const AppointmentsList = () => {
         <EmptyState
           icon={CalendarDays}
           title="No appointments found"
-          description="There are no appointments matching your current filters."
-          actionLabel="+ New Walk-in Appointment"
-          onAction={() => setNewModalOpen(true)}
+          description={
+            selectedDate
+              ? `There are no appointments scheduled for this doctor on ${selectedDate}.`
+              : 'There are no appointments matching your current filters.'
+          }
+          actionLabel={selectedDate ? 'View All Dates' : '+ New Walk-in Appointment'}
+          onAction={() => {
+            if (selectedDate) setSelectedDate('');
+            else setNewModalOpen(true);
+          }}
         />
+      ) : viewMode === 'grid' ? (
+        /* Card / Tile View */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
+          {appointments.map((apt) => (
+            <AppointmentTile
+              key={apt._id}
+              appointment={apt}
+              onStatusChange={handleStatusChange}
+              onOpenPatientDialog={handleOpenPatientDialog}
+              onReschedule={(targetApt) => {
+                setSelectedAppointment(targetApt);
+                setRescheduleDate(targetApt.date);
+                setRescheduleDoctorId(targetApt.doctorId?._id || doctors[0]?._id);
+                setRescheduleModalOpen(true);
+              }}
+              onFollowUp={handleOpenFollowUp}
+              onViewFormData={(targetApt) => {
+                setSelectedAppointment(targetApt);
+                setFormDataModalOpen(true);
+              }}
+            />
+          ))}
+        </div>
       ) : (
+        /* List View */
         <div className="space-y-3">
           {appointments.map((apt) => (
             <Card key={apt._id} hover className="p-4 transition-all">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                {/* Left Info */}
-                <div className="flex items-start gap-4">
+                {/* Left Info - Clickable to open patient dialog */}
+                <div
+                  onClick={() => handleOpenPatientDialog(apt)}
+                  className="flex items-start gap-4 cursor-pointer group/patient flex-1"
+                  title="Click to view complete patient chart, visit history & clinical actions"
+                >
                   {/* Time badge */}
-                  <div className="w-20 text-center py-2 px-2 bg-slate-100 rounded-xl flex flex-col justify-center flex-shrink-0">
-                    <span className="font-mono text-sm font-bold text-slate-900">{apt.startTime}</span>
+                  <div className="w-20 text-center py-2 px-2 bg-slate-100 group-hover/patient:bg-brand-50 group-hover/patient:border-brand-200 border border-transparent rounded-xl flex flex-col justify-center flex-shrink-0 transition-all">
+                    <span className="font-mono text-sm font-bold text-slate-900 group-hover/patient:text-brand-700">{apt.startTime}</span>
                     <span className="text-[10px] text-slate-500 font-medium">{apt.date}</span>
                   </div>
 
                   {/* Patient & Service details */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-sm font-bold text-slate-900">{apt.patientDetails?.name || 'Patient'}</h4>
+                      <h4 className="text-sm font-bold text-slate-900 group-hover/patient:text-brand-600 transition-colors flex items-center gap-1.5">
+                        <span>{apt.patientDetails?.name || 'Patient'}</span>
+                        <span className="text-[11px] font-semibold text-brand-600 bg-brand-50 px-2 py-0.2 rounded-full border border-brand-200 opacity-80 group-hover/patient:opacity-100">
+                          View Chart ↗
+                        </span>
+                      </h4>
                       <Badge status={apt.status} size="sm" />
                       <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
                         {apt.appointmentNumber}
@@ -399,7 +747,13 @@ export const AppointmentsList = () => {
                     </div>
 
                     <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-                      <span className="flex items-center gap-1">
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `tel:${apt.patientDetails?.phone}`;
+                        }}
+                        className="flex items-center gap-1 hover:text-brand-600"
+                      >
                         <Phone className="w-3 h-3 text-slate-400" />
                         {apt.patientDetails?.phone}
                       </span>
@@ -415,6 +769,13 @@ export const AppointmentsList = () => {
                       </span>
                     </div>
 
+                    {/* Treatment summary preview if recorded */}
+                    {apt.treatmentProvided && (
+                      <p className="text-xs text-emerald-800 bg-emerald-50/80 px-2 py-1 rounded-lg border border-emerald-200/60 w-fit line-clamp-1">
+                        <strong>Treatment:</strong> {apt.treatmentProvided}
+                      </p>
+                    )}
+
                     {apt.internalNotes && (
                       <p className="text-xs text-slate-600 italic bg-amber-50/60 p-1.5 rounded-lg border border-amber-100 w-fit">
                         Note: {apt.internalNotes}
@@ -425,21 +786,23 @@ export const AppointmentsList = () => {
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-2 flex-wrap lg:justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100">
-                  {/* Status Dropdown */}
-                  <select
-                    value={apt.status}
-                    onChange={(e) => handleStatusChange(apt._id, e.target.value)}
-                    className="text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none"
+                  {/* Status Dropdown with Color-Coded Blur Background */}
+                  <StatusDropdown
+                    status={apt.status}
+                    onChange={(newStatus) => handleStatusChange(apt._id, newStatus)}
+                  />
+
+                  {/* Patient Chart & Clinical Actions Button */}
+                  <Button
+                    onClick={() => handleOpenPatientDialog(apt)}
+                    variant="outline"
+                    size="sm"
+                    icon={User}
+                    className="text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                    title="Open complete patient chart, history & clinical actions"
                   >
-                    <option value="BOOKED">BOOKED</option>
-                    <option value="CONFIRMED">CONFIRMED</option>
-                    <option value="ARRIVED">ARRIVED</option>
-                    <option value="WAITING">WAITING</option>
-                    <option value="IN_PROGRESS">IN_PROGRESS</option>
-                    <option value="COMPLETED">COMPLETED</option>
-                    <option value="CANCELLED">CANCELLED</option>
-                    <option value="NO_SHOW">NO_SHOW</option>
-                  </select>
+                    Chart & Actions
+                  </Button>
 
                   {/* Quick Reschedule */}
                   <Button
@@ -458,14 +821,7 @@ export const AppointmentsList = () => {
 
                   {/* Follow-up button */}
                   <Button
-                    onClick={() => {
-                      setSelectedAppointment(apt);
-                      setFollowUpDoctorId(apt.doctorId?._id || doctors[0]?._id);
-                      setFollowUpServiceId(apt.serviceId?._id || services[0]?._id);
-                      const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-                      setFollowUpDate(nextWeek);
-                      setFollowUpModalOpen(true);
-                    }}
+                    onClick={() => handleOpenFollowUp(apt)}
                     variant="outline"
                     size="sm"
                     icon={Calendar}
@@ -662,7 +1018,7 @@ export const AppointmentsList = () => {
             <label className="block text-xs font-medium text-slate-700 mb-1">Internal Clinical Notes</label>
             <textarea
               rows={2}
-              placeholder="e.g. Walk-in patient experiencing acute tooth sensitivity"
+              placeholder="e.g. Walk-in patient consultation and clinical assessment"
               value={manualNotes}
               onChange={(e) => setManualNotes(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-100"
@@ -779,13 +1135,53 @@ export const AppointmentsList = () => {
           </div>
 
           <div>
-            <label className="block font-medium text-slate-700 mb-1">Recommended Date</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block font-medium text-slate-700">Recommended Date *</label>
+              <span className="text-[11px] font-mono font-semibold text-brand-600">
+                {followUpDate ? new Date(followUpDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+              </span>
+            </div>
+
+            {/* Quick Helper Days Presets */}
+            <div className="mb-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-brand-600" />
+                <span>Quick Follow-up Presets</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[
+                  { label: '+3 Days', days: 3 },
+                  { label: '+7 Days (1 Wk)', days: 7 },
+                  { label: '+10 Days', days: 10 },
+                  { label: '+14 Days (2 Wks)', days: 14 },
+                  { label: '+21 Days (3 Wks)', days: 21 },
+                  { label: '+30 Days (1 Mo)', days: 30 },
+                ].map((preset) => {
+                  const isSelected = isFollowUpPresetActive(preset.days);
+                  return (
+                    <button
+                      key={preset.days}
+                      type="button"
+                      onClick={() => handleApplyFollowUpDays(preset.days)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border ${
+                        isSelected
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-2xs font-bold ring-1 ring-brand-600'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <input
               type="date"
               required
               value={followUpDate}
               onChange={(e) => setFollowUpDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-100"
             />
           </div>
 
@@ -864,6 +1260,20 @@ export const AppointmentsList = () => {
           )}
         </div>
       </Modal>
+
+      {/* MODAL 5: COMPLETE PATIENT CHART, HISTORY & CLINICAL ACTIONS DIALOG */}
+      <PatientAppointmentDialog
+        isOpen={patientDialogOpen}
+        onClose={() => {
+          setPatientDialogOpen(false);
+          setPatientDialogAppointment(null);
+        }}
+        appointment={patientDialogAppointment}
+        doctors={doctors}
+        services={services}
+        onAppointmentUpdated={handleAppointmentUpdatedFromDialog}
+        onFollowUpCreated={handleFollowUpCreatedFromDialog}
+      />
     </div>
   );
 };

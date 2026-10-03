@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 
+export const DEFAULT_DOCTOR_IMAGE =
+  'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80';
+
 const DoctorSchema = new mongoose.Schema(
   {
     clinicId: {
@@ -15,7 +18,7 @@ const DoctorSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-      default: '',
+      default: DEFAULT_DOCTOR_IMAGE,
     },
     specialization: {
       type: String,

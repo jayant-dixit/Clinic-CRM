@@ -89,6 +89,14 @@ const AppointmentSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    clinicalNotes: {
+      type: String,
+      default: '',
+    },
+    treatmentProvided: {
+      type: String,
+      default: '',
+    },
     cancellationReason: {
       type: String,
       default: '',

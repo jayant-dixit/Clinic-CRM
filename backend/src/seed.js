@@ -37,12 +37,14 @@ export const seedData = async () => {
 
     // 1. Create Demo Clinic
     const clinic = await Clinic.create({
-      name: 'SmileCare Dental Clinic',
+      name: 'CareSlot Multi-Speciality Clinic',
       slug: 'smilecare-dental',
       logo: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150&auto=format&fit=crop&q=80',
-      description: 'Premier multispecialty dental clinic offering painless laser dentistry, cosmetic smile makeovers, orthodontics and preventative oral health care.',
+      description: 'Premier multispecialty healthcare clinic offering clinical consultations, diagnostics, specialized treatments, and patient-centered care.',
+      clinicType: 'Multi-Speciality Clinic',
+      googleBusinessProfile: 'https://maps.app.goo.gl/careclinic-reviews',
       phone: '+91 98765 43210',
-      email: 'contact@smilecaredental.in',
+      email: 'contact@careclinic.in',
       address: {
         street: 'Suite 402, Lotus Health Plaza, Indiranagar',
         city: 'Bengaluru',
@@ -50,7 +52,7 @@ export const seedData = async () => {
         postalCode: '560038',
         country: 'India',
       },
-      website: 'https://smilecaredental.in',
+      website: 'https://careclinic.in',
       timezone: 'Asia/Kolkata',
       settings: {
         minAdvanceBookingHours: 1,
@@ -391,9 +393,9 @@ export const seedData = async () => {
     // 7. Create Demo Booking Page
     const bookingPage = await BookingPage.create({
       clinicId: clinic._id,
-      title: 'Book Your Dental Appointment',
+      title: 'Book Your Clinic Appointment',
       slug: 'general-appointment',
-      description: 'Book your in-clinic consultation with top dental specialists. Scan the QR code or select your preferred service and time slot below.',
+      description: 'Book your in-clinic consultation with top doctors and specialists. Scan the QR code or select your preferred service and time slot below.',
       formId: registrationForm._id,
       allowedServices: [serviceConsultation._id, serviceCleaning._id, serviceRootCanal._id, serviceCheckup._id],
       allowedDoctors: [doctor1._id, doctor2._id],

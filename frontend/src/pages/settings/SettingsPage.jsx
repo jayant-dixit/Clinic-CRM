@@ -20,6 +20,8 @@ export const SettingsPage = () => {
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
   const [website, setWebsite] = useState('');
+  const [clinicType, setClinicType] = useState('Multi-Speciality Clinic');
+  const [googleBusinessProfile, setGoogleBusinessProfile] = useState('');
   const [timezone, setTimezone] = useState('Asia/Kolkata');
   const [address, setAddress] = useState({ street: '', city: '', state: '', postalCode: '', country: 'India' });
 
@@ -46,6 +48,8 @@ export const SettingsPage = () => {
       setEmail(clinic.email || '');
       setDescription(clinic.description || '');
       setWebsite(clinic.website || '');
+      setClinicType(clinic.clinicType || 'Multi-Speciality Clinic');
+      setGoogleBusinessProfile(clinic.googleBusinessProfile || '');
       setTimezone(clinic.timezone || 'Asia/Kolkata');
       if (clinic.address) setAddress(clinic.address);
 
@@ -72,6 +76,8 @@ export const SettingsPage = () => {
         email,
         description,
         website,
+        clinicType,
+        googleBusinessProfile,
         timezone,
         address,
         settings: {
@@ -211,7 +217,7 @@ export const SettingsPage = () => {
                 <label className="block font-medium text-slate-700 mb-1">Website URL</label>
                 <input
                   type="url"
-                  placeholder="https://smilecaredental.in"
+                  placeholder="https://careclinic.com"
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
@@ -229,6 +235,42 @@ export const SettingsPage = () => {
                   <option value="Europe/London">Europe/London (GMT)</option>
                   <option value="Asia/Dubai">Asia/Dubai (GST)</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">Clinic Type / Speciality</label>
+                <select
+                  value={clinicType}
+                  onChange={(e) => setClinicType(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white"
+                >
+                  <option value="Multi-Speciality Clinic">Multi-Speciality Clinic</option>
+                  <option value="Dental & Oral Care">Dental & Oral Care</option>
+                  <option value="Aesthetic & Dermatology">Aesthetic & Dermatology</option>
+                  <option value="Physiotherapy & Rehabilitation">Physiotherapy & Rehabilitation</option>
+                  <option value="Ophthalmology / Eye Care">Ophthalmology / Eye Care</option>
+                  <option value="General Medicine & Primary Care">General Medicine & Primary Care</option>
+                  <option value="Pediatrics & Child Care">Pediatrics & Child Care</option>
+                  <option value="Orthopedics & Joint Clinic">Orthopedics & Joint Clinic</option>
+                  <option value="Cardiology & Heart Care">Cardiology & Heart Care</option>
+                  <option value="ENT Clinic">ENT Clinic (Ear, Nose, Throat)</option>
+                  <option value="Psychiatry & Mental Health">Psychiatry & Mental Health</option>
+                  <option value="Ayurveda & Wellness">Ayurveda & Wellness</option>
+                  <option value="Other Healthcare Specialty">Other Healthcare Specialty</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">Google Business Profile / Review Link</label>
+                <input
+                  type="url"
+                  placeholder="https://maps.app.goo.gl/... or https://g.page/r/..."
+                  value={googleBusinessProfile}
+                  onChange={(e) => setGoogleBusinessProfile(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Used to collect Google ratings from patients</span>
               </div>
             </div>
 

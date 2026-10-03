@@ -77,7 +77,7 @@ export const LandingPage = () => {
       name: 'Starter',
       price: '₹1,999',
       period: '/ month',
-      desc: 'Ideal for independent dental clinics and single practitioners.',
+      desc: 'Ideal for independent clinics and single practitioners.',
       features: [
         'Up to 2 Doctors',
         'Unlimited QR Code Bookings',
@@ -92,7 +92,7 @@ export const LandingPage = () => {
       name: 'Professional',
       price: '₹4,499',
       period: '/ month',
-      desc: 'Designed for growing multi-specialty dental and health centers.',
+      desc: 'Designed for growing multi-specialty and healthcare centers.',
       features: [
         'Up to 10 Doctors & Practitioners',
         'Unlimited Dynamic Forms & Logic Rules',
@@ -108,7 +108,7 @@ export const LandingPage = () => {
       name: 'Enterprise',
       price: '₹8,999',
       period: '/ month',
-      desc: 'For dental hospital chains and multi-location clinic networks.',
+      desc: 'For hospital networks and multi-location clinic chains.',
       features: [
         'Unlimited Doctors & Locations',
         'Custom Domain & Brand Whitelabeling',
@@ -127,8 +127,8 @@ export const LandingPage = () => {
       <nav className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white text-lg shadow-md shadow-brand-500/20">
-              🦷
+            <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+              <Sparkles className="w-5 h-5" />
             </div>
             <span className="text-xl font-extrabold tracking-tight text-slate-900">CareSlot</span>
           </div>
@@ -233,7 +233,7 @@ export const LandingPage = () => {
                 <span className="w-3 h-3 rounded-full bg-rose-400" />
                 <span className="w-3 h-3 rounded-full bg-amber-400" />
                 <span className="w-3 h-3 rounded-full bg-emerald-400" />
-                <span className="ml-2 font-bold text-xs text-slate-800">SmileCare Dental Clinic — Schedule</span>
+                <span className="ml-2 font-bold text-xs text-slate-800">CareSlot Medical Practice — Schedule</span>
               </div>
               <span className="text-[11px] font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">
                 ● LIVE SYNC ACTIVE
@@ -244,14 +244,14 @@ export const LandingPage = () => {
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Currently Serving</span>
                 <div className="text-3xl font-extrabold text-slate-900 font-mono mt-1">#02</div>
-                <p className="text-xs font-semibold text-slate-700 mt-2">Priya Gupta (Teeth Cleaning)</p>
+                <p className="text-xs font-semibold text-slate-700 mt-2">Priya Gupta (Consultation)</p>
                 <p className="text-[11px] text-slate-500">Dr. Rahul Sharma</p>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Next in Queue</span>
                 <div className="text-3xl font-extrabold text-brand-600 font-mono mt-1">#03</div>
-                <p className="text-xs font-semibold text-slate-700 mt-2">Amit Kumar (Root Canal)</p>
+                <p className="text-xs font-semibold text-slate-700 mt-2">Amit Kumar (General Checkup)</p>
                 <p className="text-[11px] text-slate-500">Wait time: ~15 mins</p>
               </div>
 
@@ -277,7 +277,7 @@ export const LandingPage = () => {
               Engineered for seamless patient visits
             </h2>
             <p className="text-sm text-slate-500 mt-2">
-              Everything your dental clinic needs from digital registration to appointment follow-up.
+              Everything your clinic needs from digital registration to appointment follow-up.
             </p>
           </div>
 
@@ -319,7 +319,7 @@ export const LandingPage = () => {
             </span>
             <h3 className="text-base font-bold text-slate-900">Admin Sets Up Clinic</h3>
             <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-              Add dental doctors, treatments, configure weekly shift hours, create custom patient forms, and print the auto-generated QR code tent card.
+              Add doctors, services, configure weekly shift hours, create custom patient intake forms, and print the auto-generated QR code tent card.
             </p>
           </div>
 
@@ -424,12 +424,12 @@ export const LandingPage = () => {
       <footer className="py-12 bg-slate-950 text-slate-400 text-xs border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🦷</span>
+            <Sparkles className="w-4 h-4 text-brand-400" />
             <span className="text-white font-extrabold text-sm">CareSlot</span>
             <span className="text-slate-600">| Modern Clinic Appointment SaaS</span>
           </div>
 
-          <p>© {new Date().getFullYear()} CareSlot Inc. Built for dental and healthcare practices worldwide.</p>
+          <p>© {new Date().getFullYear()} CareSlot Inc. Built for healthcare clinics and medical practices worldwide.</p>
         </div>
       </footer>
     </div>

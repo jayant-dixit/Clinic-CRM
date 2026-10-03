@@ -19,6 +19,7 @@ import patientRoutes from './routes/patientRoutes.js';
 import queueRoutes from './routes/queueRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import superAdminRoutes from './routes/superAdminRoutes.js';
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/queue', queueRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/superadmin', superAdminRoutes);
 
 // 404 handler for undefined API routes
 app.use('/api/*', (req, res) => {

@@ -12,3 +12,5 @@ export { Queue } from './Queue.js';
 export { Notification } from './Notification.js';
 export { NotificationTemplate } from './NotificationTemplate.js';
 export { AuditLog } from './AuditLog.js';
+export { SupportTicket } from './SupportTicket.js';
+export { SubscriptionPayment } from './SubscriptionPayment.js';

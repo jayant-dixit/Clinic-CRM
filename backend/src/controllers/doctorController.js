@@ -1,4 +1,4 @@
-import { Doctor } from '../models/Doctor.js';
+import { Doctor, DEFAULT_DOCTOR_IMAGE } from '../models/Doctor.js';
 import { Availability } from '../models/Availability.js';
 
 const DEFAULT_WEEKLY_SCHEDULE = [
@@ -46,7 +46,7 @@ export const createDoctor = async (req, res, next) => {
       phone: phone || '',
       email: email || '',
       bio: bio || '',
-      profileImage: profileImage || '',
+      profileImage: profileImage && profileImage.trim() ? profileImage.trim() : DEFAULT_DOCTOR_IMAGE,
       assignedServices: assignedServices || [],
       status: status || 'ACTIVE',
     });
@@ -68,9 +68,14 @@ export const createDoctor = async (req, res, next) => {
 
 export const updateDoctor = async (req, res, next) => {
   try {
+    const updateData = { ...req.body };
+    if (updateData.profileImage !== undefined && (!updateData.profileImage || !updateData.profileImage.trim())) {
+      updateData.profileImage = DEFAULT_DOCTOR_IMAGE;
+    }
+
     const doctor = await Doctor.findOneAndUpdate(
       { _id: req.params.id, clinicId: req.clinicId },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     ).populate('assignedServices');
 

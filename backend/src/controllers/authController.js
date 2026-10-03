@@ -127,6 +127,8 @@ export const login = async (req, res, next) => {
             slug: clinic.slug,
             logo: clinic.logo,
             settings: clinic.settings,
+            features: clinic.features,
+            subscription: clinic.subscription,
           }
         : null,
     });

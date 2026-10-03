@@ -45,6 +45,29 @@ const ClinicSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    clinicType: {
+      type: String,
+      default: 'Multi-Speciality Clinic',
+      trim: true,
+    },
+    googleBusinessProfile: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    googlePlaceId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    rating: {
+      type: Number,
+      default: 4.9,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
     timezone: {
       type: String,
       default: 'Asia/Kolkata',
@@ -63,6 +86,48 @@ const ClinicSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    subscription: {
+      plan: {
+        type: String,
+        enum: ['STARTER', 'PROFESSIONAL', 'ENTERPRISE', 'CUSTOM'],
+        default: 'PROFESSIONAL',
+      },
+      status: {
+        type: String,
+        enum: ['ACTIVE', 'TRIAL', 'SUSPENDED', 'OVERDUE', 'CANCELLED'],
+        default: 'ACTIVE',
+      },
+      pricePerMonth: {
+        type: Number,
+        default: 2999,
+      },
+      billingCycle: {
+        type: String,
+        enum: ['MONTHLY', 'ANNUAL'],
+        default: 'MONTHLY',
+      },
+      validUntil: {
+        type: Date,
+        default: () => new Date(Date.now() + 30 * 86400000),
+      },
+      patientQuota: {
+        type: Number,
+        default: 1000,
+      },
+    },
+    features: {
+      publicBooking: { type: Boolean, default: true },
+      qrCodeBooking: { type: Boolean, default: true },
+      customForms: { type: Boolean, default: true },
+      analyticsReporting: { type: Boolean, default: true },
+      automatedNotifications: { type: Boolean, default: true },
+      multiDoctor: { type: Boolean, default: true },
     },
   },
   { timestamps: true }
