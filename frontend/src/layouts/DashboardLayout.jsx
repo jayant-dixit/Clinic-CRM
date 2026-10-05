@@ -69,7 +69,7 @@ export const DashboardLayout = () => {
               🦷
             </div>
             <div>
-              <span className="text-base font-extrabold text-white tracking-tight">CareSlot</span>
+              <span className="text-base font-extrabold text-white tracking-tight">CareFlow</span>
               <span className="text-[10px] uppercase font-bold text-brand-400 bg-brand-950/80 px-1.5 py-0.5 rounded ml-1.5 border border-brand-800/50">
                 SaaS
               </span>
@@ -181,7 +181,7 @@ export const DashboardLayout = () => {
       <header className="md:hidden bg-slate-900 text-white h-14 flex items-center justify-between px-4 border-b border-slate-800 z-40 sticky top-0 flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-lg">🦷</span>
-          <span className="font-extrabold text-sm tracking-tight">CareSlot</span>
+          <span className="font-extrabold text-sm tracking-tight">CareFlow</span>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -197,7 +197,7 @@ export const DashboardLayout = () => {
           <div className="h-14 flex items-center justify-between px-4 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-lg">🦷</span>
-              <span className="font-bold text-sm">CareSlot Menu</span>
+              <span className="font-bold text-sm">CareFlow Menu</span>
             </div>
             <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 text-slate-400">
               <X className="w-5 h-5" />

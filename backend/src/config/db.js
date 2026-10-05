@@ -16,7 +16,7 @@ export const connectDB = async () => {
       const { MongoMemoryServer } = await import('mongodb-memory-server');
       mongoMemoryServerInstance = await MongoMemoryServer.create({
         instance: {
-          dbName: 'careslot_db'
+          dbName: 'careflow_db'
         }
       });
       const uri = mongoMemoryServerInstance.getUri();

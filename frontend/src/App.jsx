@@ -44,7 +44,7 @@ const ProtectedRoute = ({ children }) => {
           <div className="w-10 h-10 rounded-2xl bg-brand-600 text-white flex items-center justify-center text-xl font-bold animate-bounce shadow-md">
             🦷
           </div>
-          <p className="text-xs text-slate-500 font-medium">Verifying CareSlot credentials...</p>
+          <p className="text-xs text-slate-500 font-medium">Verifying CareFlow credentials...</p>
         </div>
       </div>
     );

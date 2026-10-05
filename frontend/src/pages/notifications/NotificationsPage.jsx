@@ -292,7 +292,7 @@ export const NotificationsPage = () => {
                     .replace(/\{\{serviceName\}\}/g, 'Clinical Consultation')
                     .replace(/\{\{date\}\}/g, '10 October 2026')
                     .replace(/\{\{time\}\}/g, '11:30 AM')
-                    .replace(/\{\{clinicName\}\}/g, 'CareSlot Clinic')
+                    .replace(/\{\{clinicName\}\}/g, 'CareFlow Clinic')
                     .replace(/\{\{appointmentId\}\}/g, 'APT-20261010-0012')}
                 </p>
               </div>

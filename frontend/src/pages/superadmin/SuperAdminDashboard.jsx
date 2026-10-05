@@ -399,7 +399,7 @@ export const SuperAdminDashboard = () => {
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase">
               Root SaaS Command Center
             </span>
-            <span className="text-xs text-slate-400">CareSlot Multi-Tenant Control</span>
+            <span className="text-xs text-slate-400">CareFlow Multi-Tenant Control</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
             SuperAdmin Platform Dashboard
@@ -2002,7 +2002,7 @@ export const SuperAdminDashboard = () => {
             <div className="p-4 bg-gradient-to-tr from-purple-50 to-indigo-50 rounded-2xl border border-purple-200/80">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-bold text-purple-900 uppercase tracking-wider">
-                  CareSlot Account Access
+                  CareFlow Account Access
                 </span>
                 <span className="px-2 py-0.5 rounded bg-purple-200/80 text-purple-800 font-bold text-[10px]">
                   {generatedCredentials.role}
@@ -2071,7 +2071,7 @@ export const SuperAdminDashboard = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const message = `🦷 CareSlot Platform Credentials:\nClinic: ${generatedCredentials.clinicName}\nName: ${generatedCredentials.name}\nRole: ${generatedCredentials.role}\nLogin URL: ${generatedCredentials.loginUrl}\nEmail: ${generatedCredentials.email}\nPassword: ${generatedCredentials.password}\n\nPlease sign in and change your password in Settings.`;
+                  const message = `🦷 CareFlow Platform Credentials:\nClinic: ${generatedCredentials.clinicName}\nName: ${generatedCredentials.name}\nRole: ${generatedCredentials.role}\nLogin URL: ${generatedCredentials.loginUrl}\nEmail: ${generatedCredentials.email}\nPassword: ${generatedCredentials.password}\n\nPlease sign in and change your password in Settings.`;
                   handleCopy(message, 'all');
                 }}
                 className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-md transition"

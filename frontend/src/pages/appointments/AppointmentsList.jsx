@@ -249,7 +249,7 @@ export const AppointmentsList = () => {
     // 1. Cross-tab live broadcast
     let channel = null;
     try {
-      channel = new BroadcastChannel('careslot_live_sync');
+      channel = new BroadcastChannel('careflow_live_sync');
       channel.onmessage = (event) => {
         if (event.data?.type === 'NEW_APPOINTMENT') {
           fetchAppointments(true);

@@ -691,7 +691,7 @@ export const DashboardHome = () => {
         onClose={() => setQrModalOpen(false)}
         title="General Appointment Booking"
         bookingUrl={bookingUrl}
-        clinicName={clinic?.name || 'CareSlot Clinic'}
+        clinicName={clinic?.name || 'CareFlow Clinic'}
       />
 
       {/* Patient Chart & Clinical Notes Dialog */}

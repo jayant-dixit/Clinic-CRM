@@ -1,7 +1,7 @@
 {
-  "name": "careslot-backend",
+  "name": "careflow-backend",
   "version": "1.0.0",
-  "description": "CareSlot Clinic Appointment & Patient Management SaaS API",
+  "description": "CareFlow Clinic Appointment & Patient Management SaaS API",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

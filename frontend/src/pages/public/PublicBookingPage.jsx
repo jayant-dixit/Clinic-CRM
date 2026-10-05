@@ -114,7 +114,7 @@ export const PublicBookingPage = () => {
 
         // Broadcast to clinic dashboard (Appointments page) in real-time
         try {
-          const channel = new BroadcastChannel('careslot_live_sync');
+          const channel = new BroadcastChannel('careflow_live_sync');
           channel.postMessage({
             type: 'NEW_APPOINTMENT',
             bookingSource: payload.bookingSource,

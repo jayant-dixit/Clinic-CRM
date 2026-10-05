@@ -7,13 +7,13 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [clinic, setClinic] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('careslot_token') || null);
+  const [token, setToken] = useState(localStorage.getItem('careflow_token') || localStorage.getItem('careslot_token') || null);
   const [isLoading, setIsLoading] = useState(true);
   const { showToast } = useToast();
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = localStorage.getItem('careslot_token');
+      const storedToken = localStorage.getItem('careflow_token') || localStorage.getItem('careslot_token');
       if (storedToken) {
         try {
           const res = await api.getMe();
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.login({ email, password });
       if (res.success && res.token) {
-        localStorage.setItem('careslot_token', res.token);
+        localStorage.setItem('careflow_token', res.token);
         setToken(res.token);
         setUser(res.user);
         setClinic(res.clinic);
@@ -58,17 +58,25 @@ export const AuthProvider = ({ children }) => {
     if (roleType === 'STAFF') {
       email = 'receptionist@smilecare.com';
     } else if (roleType === 'SUPER_ADMIN') {
-      email = 'admin@careslot.com';
+      email = 'admin@careflow.com';
     }
 
-    return await login(email, password);
+    try {
+      return await login(email, password);
+    } catch (err) {
+      if (roleType === 'SUPER_ADMIN') {
+        // Fallback for previous seed database with careslot domain
+        return await login('admin@careslot.com', password);
+      }
+      throw err;
+    }
   };
 
   const register = async (payload) => {
     try {
       const res = await api.register(payload);
       if (res.success && res.token) {
-        localStorage.setItem('careslot_token', res.token);
+        localStorage.setItem('careflow_token', res.token);
         setToken(res.token);
         setUser(res.user);
         setClinic(res.clinic);
@@ -82,6 +90,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem('careflow_token');
     localStorage.removeItem('careslot_token');
     setToken(null);
     setUser(null);

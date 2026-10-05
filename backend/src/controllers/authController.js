@@ -89,7 +89,13 @@ export const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
+    if (!user && (normalizedEmail === 'admin@careflow.com' || normalizedEmail === 'admin@careslot.com')) {
+      user = await User.findOne({
+        email: { $in: ['admin@careflow.com', 'admin@careslot.com'] }
+      }).select('+password');
+    }
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }

@@ -9,7 +9,7 @@ import { SupportTicket } from '../models/SupportTicket.js';
 import { slugify } from '../utils/helpers.js';
 
 // Helper to generate secure human-friendly random password
-const generateRandomPassword = (prefix = 'CareSlot') => {
+const generateRandomPassword = (prefix = 'CareFlow') => {
   const digits = Math.floor(1000 + Math.random() * 9000);
   return `${prefix}@${digits}!`;
 };

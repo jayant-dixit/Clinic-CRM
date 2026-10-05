@@ -44,7 +44,7 @@ export const Register = () => {
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Register Your Clinic</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Start your free 14-day trial of CareSlot SaaS
+            Start your free 14-day trial of CareFlow SaaS
           </p>
         </div>
 

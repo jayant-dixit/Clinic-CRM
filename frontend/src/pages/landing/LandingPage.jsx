@@ -130,7 +130,7 @@ export const LandingPage = () => {
             <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
               <Sparkles className="w-5 h-5" />
             </div>
-            <span className="text-xl font-extrabold tracking-tight text-slate-900">CareSlot</span>
+            <span className="text-xl font-extrabold tracking-tight text-slate-900">CareFlow</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
@@ -233,7 +233,7 @@ export const LandingPage = () => {
                 <span className="w-3 h-3 rounded-full bg-rose-400" />
                 <span className="w-3 h-3 rounded-full bg-amber-400" />
                 <span className="w-3 h-3 rounded-full bg-emerald-400" />
-                <span className="ml-2 font-bold text-xs text-slate-800">CareSlot Medical Practice — Schedule</span>
+                <span className="ml-2 font-bold text-xs text-slate-800">CareFlow Medical Practice — Schedule</span>
               </div>
               <span className="text-[11px] font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">
                 ● LIVE SYNC ACTIVE
@@ -308,7 +308,7 @@ export const LandingPage = () => {
             Clinic Workflow
           </span>
           <h2 className="text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">
-            How CareSlot works in practice
+            How CareFlow works in practice
           </h2>
         </div>
 
@@ -425,11 +425,11 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-brand-400" />
-            <span className="text-white font-extrabold text-sm">CareSlot</span>
+            <span className="text-white font-extrabold text-sm">CareFlow</span>
             <span className="text-slate-600">| Modern Clinic Appointment SaaS</span>
           </div>
 
-          <p>© {new Date().getFullYear()} CareSlot Inc. Built for healthcare clinics and medical practices worldwide.</p>
+          <p>© {new Date().getFullYear()} CareFlow Inc. Built for healthcare clinics and medical practices worldwide.</p>
         </div>
       </footer>
     </div>

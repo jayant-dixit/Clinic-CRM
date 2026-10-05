@@ -38,7 +38,7 @@ class NotificationService {
         serviceName: service?.name || 'Consultation',
         date: appointment?.date || '',
         time: appointment?.startTime || '',
-        clinicName: clinicName || 'CareSlot Clinic',
+        clinicName: clinicName || 'CareFlow Clinic',
         appointmentId: appointment?.appointmentNumber || '',
       };
 

@@ -11,14 +11,14 @@ const startServer = async () => {
     const { Clinic } = await import('./models/Clinic.js');
     const count = await Clinic.countDocuments();
     if (count === 0) {
-      console.log('[Server] Database is empty. Auto-seeding CareSlot demo records...');
+      console.log('[Server] Database is empty. Auto-seeding CareFlow demo records...');
       const { seedData } = await import('./seed.js');
       await seedData();
     }
 
     const server = app.listen(config.port, () => {
       console.log(`=======================================================`);
-      console.log(` 🦷 CareSlot Clinic Management SaaS Backend Running   `);
+      console.log(` 🦷 CareFlow Clinic Management SaaS Backend Running   `);
       console.log(` 🚀 Listening at: http://localhost:${config.port}            `);
       console.log(` 🩺 Health Check: http://localhost:${config.port}/api/health `);
       console.log(`=======================================================`);

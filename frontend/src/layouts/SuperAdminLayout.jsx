@@ -59,7 +59,7 @@ export const SuperAdminLayout = () => {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-extrabold text-white tracking-tight">CareSlot</span>
+                <span className="text-sm font-extrabold text-white tracking-tight">CareFlow</span>
                 <span className="text-[10px] uppercase font-bold text-purple-300 bg-purple-950/90 px-1.5 py-0.5 rounded border border-purple-700/60">
                   SUPER
                 </span>

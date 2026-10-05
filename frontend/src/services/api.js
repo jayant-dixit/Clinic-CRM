@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export async function request(endpoint, options = {}) {
-  const token = localStorage.getItem('careslot_token');
+  const token = localStorage.getItem('careflow_token') || localStorage.getItem('careslot_token');
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -20,8 +20,11 @@ export async function request(endpoint, options = {}) {
   const response = await fetch(`${API_BASE}${endpoint}`, config);
 
   if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/public/')) {
+    localStorage.removeItem('careflow_token');
     localStorage.removeItem('careslot_token');
+    localStorage.removeItem('careflow_user');
     localStorage.removeItem('careslot_user');
+    localStorage.removeItem('careflow_clinic');
     localStorage.removeItem('careslot_clinic');
     window.location.href = '/login';
     throw new Error('Session expired. Please log in again.');

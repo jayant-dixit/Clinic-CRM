@@ -384,7 +384,7 @@ export const BookingPagesList = () => {
           onClose={() => setQrModalData(null)}
           title={qrModalData.title}
           bookingUrl={qrModalData.url}
-          clinicName={clinic?.name || 'CareSlot Clinic'}
+          clinicName={clinic?.name || 'CareFlow Clinic'}
         />
       )}
     </div>

@@ -675,7 +675,7 @@ export const PatientAppointmentDialog = ({
                     <span className="text-2xl font-black text-slate-900 mt-1 block">
                       {pastAppointments.length}
                     </span>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Recorded in CareSlot CRM</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Recorded in CareFlow CRM</p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80">

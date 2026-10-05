@@ -37,7 +37,7 @@ export const seedData = async () => {
 
     // 1. Create Demo Clinic
     const clinic = await Clinic.create({
-      name: 'CareSlot Multi-Speciality Clinic',
+      name: 'CareFlow Multi-Speciality Clinic',
       slug: 'smilecare-dental',
       logo: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150&auto=format&fit=crop&q=80',
       description: 'Premier multispecialty healthcare clinic offering clinical consultations, diagnostics, specialized treatments, and patient-centered care.',
@@ -71,7 +71,7 @@ export const seedData = async () => {
     // 2. Create Users (Super Admin, Clinic Admin, Staff)
     const superAdmin = await User.create({
       name: 'Platform Super Admin',
-      email: 'admin@careslot.com',
+      email: 'admin@careflow.com',
       password: 'Password123',
       role: 'SUPER_ADMIN',
       phone: '+91 90000 00001',
@@ -616,7 +616,7 @@ export const seedData = async () => {
 ========================================================================
 ✨ SEED COMPLETED SUCCESSFULLY!
 Demo Credentials:
-1. Super Admin:       admin@careslot.com          / Password123
+1. Super Admin:       admin@careflow.com          / Password123
 2. Clinic Admin:      clinic@smilecare.com        / Password123
 3. Staff/Reception:   receptionist@smilecare.com  / Password123
 

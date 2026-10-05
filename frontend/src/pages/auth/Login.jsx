@@ -53,7 +53,7 @@ export const Login = () => {
           <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white text-2xl font-bold flex items-center justify-center mx-auto shadow-lg shadow-brand-500/30 mb-3">
             🦷
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Sign in to CareSlot</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Sign in to CareFlow</h1>
           <p className="text-xs text-slate-500 mt-1">Manage your clinic schedule, dynamic forms & patients</p>
         </div>
 

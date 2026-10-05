@@ -1,6 +1,6 @@
-# 🦷 CareSlot — Clinic Appointment & Patient Management SaaS
+# 🦷 CareFlow — Clinic Appointment & Patient Management SaaS
 
-**CareSlot** is a complete, production-quality Clinic Appointment & Patient Management SaaS web application built initially for dental clinics, with a clinic-agnostic architecture designed to support general and multi-specialty healthcare practices.
+**CareFlow** is a complete, production-quality Clinic Appointment & Patient Management SaaS web application built initially for dental clinics, with a clinic-agnostic architecture designed to support general and multi-specialty healthcare practices.
 
 ---
 
@@ -108,7 +108,7 @@
 │   │   │   ├── calendar/          # Day, Week, Month calendar with slot blocking
 │   │   │   ├── doctors/           # Doctor profiles & availability shift manager
 │   │   │   ├── forms/             # Forms list & drag-and-drop form builder
-│   │   │   ├── landing/           # CareSlot SaaS marketing landing page
+│   │   │   ├── landing/           # CareFlow SaaS marketing landing page
 │   │   │   ├── notifications/     # Notification template editor & dispatch logs
 │   │   │   ├── patients/          # Patient directory & visit history
 │   │   │   ├── public/            # 6-step public patient booking wizard
@@ -136,7 +136,7 @@
 ### Prerequisites
 - **Node.js** (v18.0.0 or higher)
 - **npm** (v9.0.0 or higher)
-- **MongoDB** *(Optional)*: If you do not have MongoDB running locally, CareSlot will automatically initialize an embedded in-memory MongoDB engine (`mongodb-memory-server`) with zero external configuration required!
+- **MongoDB** *(Optional)*: If you do not have MongoDB running locally, CareFlow will automatically initialize an embedded in-memory MongoDB engine (`mongodb-memory-server`) with zero external configuration required!
 
 ### 1. Clone & Install Dependencies
 
@@ -161,8 +161,8 @@ Create `.env` files in both `backend` and `frontend` (or copy from the provided 
 ```env
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb://127.0.0.1:27017/careslot_db
-JWT_SECRET=careslot_super_secret_jwt_key_2026_dev
+MONGODB_URI=mongodb://127.0.0.1:27017/careflow_db
+JWT_SECRET=careflow_super_secret_jwt_key_2026_dev
 JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
 
@@ -170,9 +170,9 @@ CLIENT_URL=http://localhost:5173
 WHATSAPP_API_KEY=
 WHATSAPP_PHONE_ID=
 SMS_API_KEY=
-SMS_SENDER_ID=CARESLOT
+SMS_SENDER_ID=CAREFLOW
 EMAIL_API_KEY=
-EMAIL_FROM=no-reply@careslot.com
+EMAIL_FROM=no-reply@careflow.com
 ```
 
 #### `frontend/.env`
@@ -210,13 +210,13 @@ npm run dev
 
 ## 🔑 Demo Login Credentials
 
-CareSlot comes pre-seeded with realistic clinic data for **SmileCare Dental Clinic**:
+CareFlow comes pre-seeded with realistic clinic data for **SmileCare Dental Clinic**:
 
 | Role | Email | Password | Permissions |
 |---|---|---|---|
 | **Clinic Admin (Owner)** | `clinic@smilecare.com` | `Password123` | Full access: Clinic settings, Doctors, Services, Dynamic Forms, Availability, Notifications, Analytics |
 | **Receptionist / Staff** | `receptionist@smilecare.com` | `Password123` | Operational access: Walk-in bookings, Rescheduling, Live Reception Queue, Calling next patient |
-| **Super Admin** | `admin@careslot.com` | `Password123` | Platform-wide oversight: All clinics directory |
+| **Super Admin** | `admin@careflow.com` | `Password123` | Platform-wide oversight: All clinics directory |
 
 > **Tip**: You can use the **1-Click Demo Logins** on the Login page (`/login`) or SaaS Landing page (`/`) to immediately log in as any role without typing!
 
@@ -225,7 +225,7 @@ CareSlot comes pre-seeded with realistic clinic data for **SmileCare Dental Clin
 ## 🧪 Testing the Complete End-to-End Booking Flow
 
 1. **Open the SaaS Landing Page**:
-   - Navigate to `http://localhost:5173/` to view the CareSlot marketing page.
+   - Navigate to `http://localhost:5173/` to view the CareFlow marketing page.
 2. **Access the Public Patient Booking Flow**:
    - Open `http://localhost:5173/book/smilecare-dental/general-appointment` (or scan the QR code).
 3. **Walk Through the 6-Step Patient Experience**:

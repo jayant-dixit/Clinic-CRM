@@ -58,7 +58,7 @@ export const QRCodesPage = () => {
                 Scan to Book
               </span>
               <h3 className="text-base font-bold text-slate-900">{page.title}</h3>
-              <p className="text-xs text-slate-400 mt-0.5">{clinic?.name || 'CareSlot Clinic'}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{clinic?.name || 'CareFlow Clinic'}</p>
 
               {/* QR Image Box */}
               <div className="my-5 p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:scale-[1.02] transition-transform">
@@ -115,7 +115,7 @@ export const QRCodesPage = () => {
           onClose={() => setActiveModalPage(null)}
           title={activeModalPage.title}
           bookingUrl={activeModalPage.fullUrl}
-          clinicName={clinic?.name || 'CareSlot Clinic'}
+          clinicName={clinic?.name || 'CareFlow Clinic'}
         />
       )}
     </div>

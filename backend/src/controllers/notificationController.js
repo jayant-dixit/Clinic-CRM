@@ -62,7 +62,7 @@ export const sendTestNotification = async (req, res, next) => {
 
     await notificationService.dispatchAppointmentNotification({
       clinicId: req.clinicId,
-      clinicName: clinic?.name || 'CareSlot Clinic',
+      clinicName: clinic?.name || 'CareFlow Clinic',
       appointment: dummyAppointment,
       patient: dummyPatient,
       doctor: dummyDoctor,
